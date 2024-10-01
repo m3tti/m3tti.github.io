@@ -1,5 +1,3 @@
-Here is the corrected text:
-
 # Building a Blog in Borkweb
 
 Hey, new day, now post, I guess. So, let's get it started. First of all, you have to copy over all the stuff from Borkweb. I assume the easiest way is to use the zipfile provided by GitHub. So, you can get that with some small commands.
