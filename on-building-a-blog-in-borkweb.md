@@ -1,27 +1,32 @@
-# On building a blog in borkweb
-Hey new day now post i guess. So lets get it started. First of all you have to copy over all the stuff from borkweb. I assume the esiest way is to use the zipfile provided by github. So you can get that with some small commands.
+Here is the corrected text:
 
-``` shell
+# Building a Blog in Borkweb
+
+Hey, new day, now post, I guess. So, let's get it started. First of all, you have to copy over all the stuff from Borkweb. I assume the easiest way is to use the zipfile provided by GitHub. So, you can get that with some small commands.
+
+```shell
 # curl https://codeload.github.com/m3tti/borkweb/zip/refs/heads/master -o borkweb.zip
 # unzip borkweb.zip
 # mv borkweb-master your-project-name
 ```
 
-Thats it you are ready to go. 
+That's it, you are ready to go.
 
-## Setting up the database
-Borkweb is currently dependend on postgresql you can setup your own or use the `docker-compose.yml` that has everything to start up a database system with postgres and pgadmin. Simply use `docker-compose up -d` in the root folder and there you go. You have to adjust your parameters in `database/core.clj`. Here you'll find something like that: 
+## On Setting Up the Database
 
-``` clojure
+Borkweb is currently dependent on PostgreSQL. You can set up your own or use the `docker-compose.yml` that has everything to start up a database system with PostgreSQL and pgAdmin. Simply use `docker-compose up -d` in the root folder, and there you go. You have to adjust your parameters in `database/core.clj`. Here, you'll find something like that:
+
+```clojure
 (defonce db (jdbc/get-connection {:dbtype "postgres"
                                   :dbname "jobstop"
                                   :user "postgres"
                                   :password "test1234"
                                   :port 15432}))
 ```
-Just adjust all the setting to your liking. And make sure that your database is available. After that the next natural step would be to adjust the `init.sql` script. After adding all the tables you need you can either directly import your sql script with a tool you already know or use the build in `bb -m database.core/initialize-db` function from borkweb to push all the setting to your db. Now is the time to expand the database functionality. In my case i seperate each clojure file in borkweb by the table space. So imagine you have a documents table i would create a file called `database/document.clj` and put all regarding functions into it. Borkweb supports already some helper functions to help you with creating crud functions e.g
 
-``` clojure
+Just adjust all the settings to your liking, and make sure that your database is available. After that, the next natural step would be to adjust the `init.sql` script. After adding all the tables you need, you can either directly import your SQL script with a tool you already know or use the built-in `bb -m database.core/initialize-db` function from Borkweb to push all the settings to your database. Now is the time to expand the database functionality. In my case, I separate each Clojure file in Borkweb by the table space. So, imagine you have a documents table; I would create a file called `database/document.clj` and put all regarding functions into it. Borkweb supports already some helper functions to help you with creating CRUD functions, e.g.
+
+```clojure
 (ns database.post
   (:require 
     [database.core :as db]))
@@ -33,7 +38,7 @@ Just adjust all the setting to your liking. And make sure that your database is 
   (db/insert! :posts post))
   
 (defn update! [post]
-  (db/update! :posts post {:id (:id posts)
+  (db/update! :posts post {:id (:id post)
                                  :deleted false}))
 
 (defn find-by-id [id]
@@ -41,11 +46,14 @@ Just adjust all the setting to your liking. And make sure that your database is 
   
 ...
 ```
-All these helper functions are optional you can easily access all the jdbc connection params and functions that are present in the `database.core` namespace. Another quite useful thing is that each helper-function comes with the ability to attach a transaction which than can be used to trigger multiple inserts updates deletes in one transaction. Further reading can be found in the honeysql and babashka sql pod documentation.
+
+All these helper functions are optional; you can easily access all the JDBC connection params and functions that are present in the `database.core` namespace. Another quite useful thing is that each helper function comes with the ability to attach a transaction, which can then be used to trigger multiple inserts, updates, and deletes in one transaction. Further reading can be found in the HoneySQL and Babashka SQL pod documentation.
 
 ### Init.sql
-Thats how a `init.sql` might look like.
-``` sql
+
+That's how a `init.sql` might look like.
+
+```sql
 create database blog;
 use database blog;
 
@@ -60,32 +68,112 @@ create table users(
 create table posts(
        id serial primary key,
        title varchar(255) not null,
-       content text not null,
+       content text not null
 );
 ```
+## On Writing a Page and Registering it in the Router
 
-## Writing a page and registering it in the router
-To get something to see on the webpage side of borkweb you have to write pages or views. I tend to create for each base route its own view file and attach all the html rendering functions in there. So for our example i would like to have a route called `/posts` as base route. Therefore we are going to create a `view/posts.clj` file and add every function in there for the rendering. We'll start with the `index` aka. `/posts/` route which displays simply all posts.
+To display content on the webpage side of Borkweb, you need to write pages or views. A common approach is to create a separate view file for each base route and attach all the HTML rendering functions to it. For example, to create a route called `/posts`, you would create a `view/posts.clj` file and add all the necessary functions for rendering.
 
-``` clojure
+```clojure
 (ns view.posts
   (:require 
     [database.posts :as p]
-    [view.components :as c])) ;; we are going to use the layout component already in place in borkweb
-    
+    [view.components :as c]))
+
 (defn render-row [post]
   [:tr
    [:td (:id post)]
    [:td (:title post)]])
-    
+
 (defn index [req]
   (c/layout
    req
    [:h1 "Posts"]
    [:table
+    (map render-row (p/all))]))
+```
+
+This code will render all posts. To attach this code to the router, you need to extend the code in `/routes.cljs` with the newly created page.
+
+```clojure
+(ns routes
+  (:require
+   [ruuter.core :as ruuter]
+   [static :as static]
+   [view.index :as index]
+   [view.login :as login]
+   [view.profile :as profile]
+   [view.posts :as posts]
+   [view.register :as register]))
+
+... some helper stuff 
+
+(def routes
+  #(ruuter/route 
+    [(get "/static/:filename" static/serve-static)
+     (get "/" index/page)
+     (get "/register" register/index)
+     (post "/register" register/save)
+     (get "/login" login/index)
+     (post "/login" login/login)
+     (get "/logout" login/logout)
+     (get "/profile" profile/index)
+     ;; our new page
+     (get "/posts" posts/index)]
+    %))
+```
+
+After starting the app with `bb -m core` and navigating to `http://localhost:8080/posts` in your browser, you should see the table you just created.
+
+## On Adding CLJS Components
+
+ClojureScript is a key feature in Borkweb. It allows you to easily add interactive components to your pages without requiring a full-featured SPA framework. Borkweb uses Preact components, which can be added to any Hiccup code using the `(view.components/cljs-module filename)` function.
+
+To create a Preact component, simply drop your ClojureScript code into the `resources/cljs` folder. For example, to create a counter component, you can create the following file:
+
+```clojure
+;; resources/cljs/counter.cljs
+(require '["https://esm.sh/preact@10.19.2" :as react])
+(require '["https://esm.sh/preact@10.19.2/hooks" :as hooks])
+
+(defn Counter []
+  (let [[counter setCounter] (hooks/useState 0)]
+    #jsx [:<>
+          [:div "Counter " counter]
+          [:div {:role "group" :class "btn-group"}
+           [:button {:class "btn btn-primary" :onClick #(setCounter (inc counter))} "+"]
+           [:button {:class "btn btn-primary" :onClick #(setCounter (dec counter))} "-"]]]))
+
+(defonce el (js/document.getElementById "cljs"))
+
+(react/render #jsx [Counter] el)
+```
+
+You can then load this component in your post code like this:
+
+```clojure
+(defn index [req]
+  (c/layout
+   req
+   [:h1 "Posts"]
+   (c/cljs-module "counter")
+   [:table
     (map render-row (p/all))])
 ```
 
-This will render all posts for you. 
+This will render a JavaScript counter component. Borkweb also supports Preact web components, which can be used like any normal HTML tag in your page. An example of this can be found in `resources/cljs/custom-element.cljs`.
 
-TBD
+```clojure
+(require '["https://cdn.jsdelivr.net/npm/preact-custom-element@4.3.0/+esm$default" :as register])
+
+(defn Greeting [{:keys [name]}]
+  #jsx [:p "Hello, " name])
+
+(register Greeting "x-greeting", ["name"], {:shadow false})
+```
+
+This code can be loaded in the `view.component/layout` function to support each view that uses this layout with the custom-created component.
+
+I guess that was everything I've got to say about Borkweb. I hope you found this information helpful and informative.
+
