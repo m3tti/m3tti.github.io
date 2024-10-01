@@ -78,8 +78,24 @@ To display content on the webpage side of Borkweb, you need to write pages or vi
 ```clojure
 (ns view.posts
   (:require 
+    [utils.response :as r]
     [database.posts :as p]
     [view.components :as c]))
+
+(defn save [req]
+  (p/insert! (:form-params req))
+  (r/redirect "/posts"))
+
+(defn new [req]
+  (c/layout
+   req
+   [:h1 "New Post"]
+   [:form {:method "post" :action "/posts"}
+    [:label "Title"]
+    [:input {:name "title" :type "text"}]
+    [:label "Content"]
+    [:textarea {:name "content"}]
+    [:input {:type "submit" :value "save"}]))
 
 (defn render-row [post]
   [:tr
@@ -120,7 +136,9 @@ This code will render all posts. To attach this code to the router, you need to 
      (get "/logout" login/logout)
      (get "/profile" profile/index)
      ;; our new page
-     (get "/posts" posts/index)]
+     (get "/posts" posts/index)
+     (get "/posts/new" posts/new)
+     (post "/posts" posts/save)]
     %))
 ```
 
