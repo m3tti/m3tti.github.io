@@ -44,7 +44,7 @@ Just adjust all the settings to your liking, and make sure that your database is
 (defn find-by-id [id]
   (first (db/find-by-keys :posts {:id id})))
   
-...
+;; ...
 ```
 
 All these helper functions are optional; you can easily access all the JDBC connection params and functions that are present in the `database.core` namespace. Another quite useful thing is that each helper function comes with the ability to attach a transaction, which can then be used to trigger multiple inserts, updates, and deletes in one transaction. Further reading can be found in the HoneySQL and Babashka SQL pod documentation.
@@ -123,7 +123,7 @@ This code will render all posts. To attach this code to the router, you need to 
    [view.posts :as posts]
    [view.register :as register]))
 
-... some helper stuff 
+;; ... some helper stuff 
 
 (def routes
   #(ruuter/route 
