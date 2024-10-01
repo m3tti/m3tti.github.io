@@ -140,7 +140,7 @@ This code will render all posts. To attach this code to the router, you need to 
     %))
 ```
 
-After starting the app with `bb -m core` and navigating to `http://localhost:8080/posts` in your browser, you should see the table you just created.
+After starting the app with `bb -m core` and navigating to `http://localhost:8080/posts/new` in your browser, you should see the form you just created. Adding stuff to it would redirect you to the `/posts` route and should show the newly created post in a table.
 
 ## On Adding CLJS Components
 
