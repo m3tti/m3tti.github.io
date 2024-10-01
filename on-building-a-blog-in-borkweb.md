@@ -43,6 +43,27 @@ Just adjust all the setting to your liking. And make sure that your database is 
 ```
 All these helper functions are optional you can easily access all the jdbc connection params and functions that are present in the `database.core` namespace. Another quite useful thing is that each helper-function comes with the ability to attach a transaction which than can be used to trigger multiple inserts updates deletes in one transaction. Further reading can be found in the honeysql and babashka sql pod documentation.
 
+### Init.sql
+Thats how a `init.sql` might look like.
+``` sql
+create database blog;
+use database blog;
+
+-- create initial database
+create table users(
+       id serial primary key,
+       email varchar(255) not null,
+       password varchar(512) not null
+);
+
+-- posts
+create table posts(
+       id serial primary key,
+       title varchar(255) not null,
+       content text not null,
+);
+```
+
 ## Writing a page and registering it in the router
 To get something to see on the webpage side of borkweb you have to write pages or views. I tend to create for each base route its own view file and attach all the html rendering functions in there. So for our example i would like to have a route called `/posts` as base route. Therefore we are going to create a `view/posts.clj` file and add every function in there for the rendering. We'll start with the `index` aka. `/posts/` route which displays simply all posts.
 
