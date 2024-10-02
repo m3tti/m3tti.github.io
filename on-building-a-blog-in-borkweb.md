@@ -49,12 +49,9 @@ All these helper functions are optional; you can easily access all the JDBC conn
 
 ### Init.sql
 
-That's how a `init.sql` might look like.
+That's how a `init.sql` might look like. Make sure that you have the database setup correctly.
 
 ```sql
-create database blog;
-use database blog;
-
 -- create initial database
 create table users(
        id serial primary key,
@@ -193,3 +190,5 @@ This code can be loaded in the `view.component/layout` function to support each 
 
 I guess that was everything I've got to say about Borkweb. I hope you found this information helpful and informative.
 
+#### Links
+- [borkweb](https://github.com/m3tti/borkweb)
